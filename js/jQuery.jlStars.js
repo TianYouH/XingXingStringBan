@@ -1,66 +1,92 @@
 (function ($) {
     function Stars(ele, options) {
-        // 父层样式编写
+        
+            this.options = $.extend({
+            cound: 5,
+            value: 0,
+            height:50
+        }, options);
+
         this.$ele = $(ele);
         this.$ele.css({
-            display: "inline-block",
-            height: 100
+            height: this.options.height
         });
-        this.options = $.extend({
-            count: 5,
-            value: 5
-        }, options)
 
-        // 添加星星
-        for (var i = 0; i < this.options.count; i++) {
-            var span = document.createElement("span");
-            span.innerText = "★";
-            span.style.cssText = "line-height:100px;font-size:90px;color:red;cursor:pointer";
-            span.setAttribute("data-index", i + 1);
-            this.$ele.append(span);
+        this.width = this.$ele.height() + 6;
+        for (var i = 0; i < this.options.cound; i++) {
+            var div = $("<div>");
+            div.css({
+                boxSizing: "border-box",
+                display:"inline-block",
+                width: this.width,
+                height: this.$ele.height(),
+                left: (i % this.options.cound * this.$ele.height()),
+                backgroundImage: "url(images/star.jpg)",
+                backgroundPosition: this.width,
+                backgroundSize: this.width * 2 + "px " + this.$ele.height() + "px"
+            })
+            div.attr({
+                "data-index": i + 1
+            })
+            div.appendTo(this.$ele);
         }
 
-        var i = document.createElement("i");
-        i.style.cssText = "height:100px;line-height:100px;font-size:40px"
-        this.$ele.append(i);
+        var span = $("<span>");
+        span.css({
+            fontSize:this.$ele.height()-10+"px",
+            verticalAlign: "top",
+            textAlign: "center",
+        });
+        span.text(this.options.value+"分");
+        span.appendTo(this.$ele);
 
-        var input = document.createElement("input");
-        input.setAttribute("type", "hidden");
-        input.setAttribute("name", "fwtd");
-        this.$ele.append(input);
+        var input = $("<input>");
+        input.attr({
+            type:"hidden",
+            name:"fwtd"
+        })
+        input.val(this.options.value); 
+        input.appendTo(this.$ele);
 
-        this.spans = this.$ele.find("span");
-        this.spans.click(function (even) {
-            this.click(even.target.dataset.index);
-            this.$ele.find("i").text(even.target.dataset.index + "分");
-            this.$ele.find("input").val(even.target.dataset.index);
-        }.bind(this));
-        this.one = true;
-        if (true) {
+        
+
+        this.divs = this.$ele.find("div[data-index]");
+        this.divs.mouseenter(function (event) {
+            this.divs.each(function (i, ele) {
+                if (Number(ele.dataset.index) <= event.target.dataset.index) {
+                    $(ele).css("background-position", 0)
+                } else {
+                    $(ele).css("background-position", this.width);
+                }
+            }.bind(this))
+        }.bind(this)).mouseleave(function () {
+            this.divs.css("background-position", this.width);
             this.click(this.options.value);
-            this.$ele.find("i").text(this.options.value + "分");
+        }.bind(this));
+
+        this.divs.click(function (event) {           
+            this.options.value = event.target.dataset.index;
+            this.click(this.options.value);
+            this.$ele.find("span").text(this.options.value+"分");
             this.$ele.find("input").val(this.options.value);
-            this.one = false;
-        }
+        }.bind(this));
+
+        this.click(this.options.value);
     }
 
-    Stars.prototype = {
-        click: function (index) {
-            this.spans.each(function (i, ele) {
-                if (index >= Number(ele.dataset.index)) {
-                    console.log(true);
-                    ele.style.color = "yellow";
-                } else {
-                    ele.style.color = "red";
-                }
-            })
-        }
+    Stars.prototype.click = function (index) {
+        this.divs.each(function (i, ele) {
+            if (Number(ele.dataset.index) <= index) {
+                $(ele).css("background-position", 0)
+            } else {
+                $(ele).css("background-position", this.width);
+            }
+        }.bind(this))
     }
 
     $.fn.jlStars = function (options) {
-        this.each(function (i, el) {
-            new Stars(el, options);
+        this.each(function (i, ele) {
+            new Stars(ele, options);
         })
-        return this;
-    };
+    }
 })(jQuery);
